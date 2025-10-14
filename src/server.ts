@@ -1,12 +1,25 @@
 import express, { Application, Request, Response } from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import shipmentRoutes from './routes/shipment';
+import cors from "cors";
+import shipmentRoutes from "./routes/shipment";
 
 // Load environment variables
 dotenv.config();
 
 const app: Application = express();
+
+// ✅ Enable CORS
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000", // Local frontend (dev)
+      "https://shipment-app.onrender.com" // Deployed frontend
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true, // if you ever send cookies/auth headers
+  })
+);
 
 // Middleware
 app.use(express.json());
@@ -23,15 +36,13 @@ const connectDB = async (): Promise<void> => {
   }
 };
 
-// Mongoose connection event logs
+// Mongoose connection events
 mongoose.connection.on("connected", () => {
   console.log("Mongoose event: connected");
 });
-
 mongoose.connection.on("error", (err) => {
   console.error("Mongoose event: connection error", err);
 });
-
 mongoose.connection.on("disconnected", () => {
   console.log("Mongoose event: disconnected");
 });
@@ -39,12 +50,12 @@ mongoose.connection.on("disconnected", () => {
 // Connect to database
 connectDB();
 
-// Default test route
+// Default route
 app.get("/", (req: Request, res: Response): void => {
   res.status(200).json({ message: "Shipment API is running 🚚" });
 });
 
-// Routes (example import when ready)
+// Routes
 app.use("/api/shipments", shipmentRoutes);
 
 // Start server
