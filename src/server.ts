@@ -10,23 +10,20 @@ dotenv.config();
 
 const app: Application = express();
 
-// ✅ Enable CORS (Universal Access + Preflight Handling)
+// ✅ Enable CORS globally
 app.use(
   cors({
-    origin: "*", // Allow requests from any origin
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// ✅ Handle all preflight OPTIONS requests
-app.options("*", cors());
-
 // ✅ Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ MongoDB Connection
+// ✅ MongoDB connection
 const connectDB = async (): Promise<void> => {
   try {
     await mongoose.connect(process.env.MONGODB_URI as string);
@@ -37,16 +34,14 @@ const connectDB = async (): Promise<void> => {
   }
 };
 
-// ✅ Mongoose event listeners
 mongoose.connection.on("connected", () => console.log("Mongoose: connected"));
 mongoose.connection.on("error", (err) => console.error("Mongoose error:", err));
 mongoose.connection.on("disconnected", () => console.log("Mongoose: disconnected"));
 
-// ✅ Connect to database
 connectDB();
 
-// ✅ Default Route
-app.get("/", (req: Request, res: Response): void => {
+// ✅ Default route
+app.get("/", (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     message: "Shipment API is running 🚚",
@@ -54,20 +49,19 @@ app.get("/", (req: Request, res: Response): void => {
   });
 });
 
-// ✅ API Routes
+// ✅ API routes
 app.use("/api/shipments", shipmentRoutes);
 
-// ✅ Serve frontend SPA (after API routes)
+// ✅ Optional: Serve frontend SPA if you have a dist folder
 const distPath = path.join(__dirname, "dist");
 app.use(express.static(distPath));
-
 app.get("*", (req: Request, res: Response) => {
   res.sendFile(path.join(distPath, "index.html"));
 });
 
-// ✅ Start Server
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, (): void => {
+app.listen(PORT, () => {
   const baseUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
   console.log(`🚀 Server running at: ${baseUrl}`);
 });
