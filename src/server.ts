@@ -2,6 +2,7 @@ import express, { Application, Request, Response } from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
+import path from "path";
 import shipmentRoutes from "./routes/shipment";
 
 // ✅ Load environment variables
@@ -56,10 +57,17 @@ app.get("/", (req: Request, res: Response): void => {
 // ✅ API Routes
 app.use("/api/shipments", shipmentRoutes);
 
+// ✅ Serve frontend SPA (after API routes)
+const distPath = path.join(__dirname, "dist");
+app.use(express.static(distPath));
+
+app.get("*", (req: Request, res: Response) => {
+  res.sendFile(path.join(distPath, "index.html"));
+});
+
 // ✅ Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, (): void => {
-  const baseUrl =
-    process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+  const baseUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
   console.log(`🚀 Server running at: ${baseUrl}`);
 });
