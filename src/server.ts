@@ -12,10 +12,7 @@ const app: Application = express();
 // ✅ Enable CORS
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000", // Local frontend (dev)
-      "https://shipment-app.onrender.com" // Deployed frontend
-    ],
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true, // if you ever send cookies/auth headers
   })
