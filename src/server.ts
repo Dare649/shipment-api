@@ -2,66 +2,61 @@ import express, { Application, Request, Response } from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
-import path from "path";
 import shipmentRoutes from "./routes/shipment";
 
-// ✅ Load environment variables
+// Load environment variables
 dotenv.config();
 
 const app: Application = express();
 
-// ✅ Enable CORS globally
+// ✅ Enable CORS
 app.use(
   cors({
     origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true, // if you ever send cookies/auth headers
   })
 );
 
-// ✅ Middleware
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ MongoDB connection
+// MongoDB connection
 const connectDB = async (): Promise<void> => {
   try {
     await mongoose.connect(process.env.MONGODB_URI as string);
-    console.log("✅ MongoDB connected successfully");
+    console.log("MongoDB connected successfully");
   } catch (error) {
-    console.error("❌ MongoDB connection error:", error);
+    console.error("MongoDB connection error:", error);
     process.exit(1);
   }
 };
 
-mongoose.connection.on("connected", () => console.log("Mongoose: connected"));
-mongoose.connection.on("error", (err) => console.error("Mongoose error:", err));
-mongoose.connection.on("disconnected", () => console.log("Mongoose: disconnected"));
+// Mongoose connection events
+mongoose.connection.on("connected", () => {
+  console.log("Mongoose event: connected");
+});
+mongoose.connection.on("error", (err) => {
+  console.error("Mongoose event: connection error", err);
+});
+mongoose.connection.on("disconnected", () => {
+  console.log("Mongoose event: disconnected");
+});
 
+// Connect to database
 connectDB();
 
-// ✅ Default route
-app.get("/", (req: Request, res: Response) => {
-  res.status(200).json({
-    success: true,
-    message: "Shipment API is running 🚚",
-    baseUrl: process.env.RENDER_EXTERNAL_URL || "http://localhost:5000",
-  });
+// Default route
+app.get("/", (req: Request, res: Response): void => {
+  res.status(200).json({ message: "Shipment API is running 🚚" });
 });
 
-// ✅ API routes
+// Routes
 app.use("/api/shipments", shipmentRoutes);
 
-// ✅ Optional: Serve frontend SPA if you have a dist folder
-const distPath = path.join(__dirname, "dist");
-app.use(express.static(distPath));
-app.get("*", (req: Request, res: Response) => {
-  res.sendFile(path.join(distPath, "index.html"));
-});
-
-// ✅ Start server
+// Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  const baseUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
-  console.log(`🚀 Server running at: ${baseUrl}`);
+app.listen(PORT, (): void => {
+  console.log(`Server running at http://localhost:${PORT}`);
 });
