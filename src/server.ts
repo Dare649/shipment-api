@@ -9,7 +9,7 @@ dotenv.config();
 
 const app: Application = express();
 
-// ✅ Enable CORS
+// Enable CORS
 app.use(
   cors({
     origin: "*",

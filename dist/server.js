@@ -8,50 +8,49 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const cors_1 = __importDefault(require("cors"));
 const shipment_1 = __importDefault(require("./routes/shipment"));
-// ✅ Load environment variables
+// Load environment variables
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-// ✅ Enable CORS (Universal Access + Preflight Handling)
+// ✅ Enable CORS
 app.use((0, cors_1.default)({
-    origin: "*", // Allow requests from any origin
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true, // if you ever send cookies/auth headers
 }));
-// ✅ Handle all preflight OPTIONS requests
-app.options("*", (0, cors_1.default)());
-// ✅ Middleware
+// Middleware
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
-// ✅ MongoDB Connection
+// MongoDB connection
 const connectDB = async () => {
     try {
         await mongoose_1.default.connect(process.env.MONGODB_URI);
-        console.log("✅ MongoDB connected successfully");
+        console.log("MongoDB connected successfully");
     }
     catch (error) {
-        console.error("❌ MongoDB connection error:", error);
+        console.error("MongoDB connection error:", error);
         process.exit(1);
     }
 };
-// ✅ Mongoose event listeners
-mongoose_1.default.connection.on("connected", () => console.log("Mongoose: connected"));
-mongoose_1.default.connection.on("error", (err) => console.error("Mongoose error:", err));
-mongoose_1.default.connection.on("disconnected", () => console.log("Mongoose: disconnected"));
-// ✅ Connect to database
-connectDB();
-// ✅ Default Route
-app.get("/", (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "Shipment API is running 🚚",
-        baseUrl: process.env.RENDER_EXTERNAL_URL || "http://localhost:5000",
-    });
+// Mongoose connection events
+mongoose_1.default.connection.on("connected", () => {
+    console.log("Mongoose event: connected");
 });
-// ✅ API Routes
+mongoose_1.default.connection.on("error", (err) => {
+    console.error("Mongoose event: connection error", err);
+});
+mongoose_1.default.connection.on("disconnected", () => {
+    console.log("Mongoose event: disconnected");
+});
+// Connect to database
+connectDB();
+// Default route
+app.get("/", (req, res) => {
+    res.status(200).json({ message: "Shipment API is running 🚚" });
+});
+// Routes
 app.use("/api/shipments", shipment_1.default);
-// ✅ Start Server
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    const baseUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
-    console.log(`🚀 Server running at: ${baseUrl}`);
+    console.log(`Server running at http://localhost:${PORT}`);
 });
